@@ -23,7 +23,8 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
-import sun.plugin.util.UserProfile;
+import org.apache.kafka.streams.state.StoreBuilder;
+import org.apache.kafka.streams.state.Stores;
 
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
 
@@ -31,15 +32,21 @@ import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHE
 
 public class TransformStream {
 
-    public Properties buildStreamsProperties(Properties envProps) {
+    public Properties buildStreamsProperties() {
         Properties props = new Properties();
 
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, envProps.getProperty("application.id"));
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, envProps.getProperty("bootstrap.servers"));
-        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, SpecificAvroSerde.class);
-        props.put(SCHEMA_REGISTRY_URL_CONFIG, envProps.getProperty("schema.registry.url"));
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "DavidsApp");
 
+        props.put("bootstrap.servers", "pkc-419q3.us-east4.gcp.confluent.cloud:9092");
+        props.put("security.protocol", "SASL_SSL");
+        props.put("client.dns.lookup", "use_all_dns_ips");
+        props.put("sasl.mechanism", "PLAIN");
+
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+
+        props.put(SCHEMA_REGISTRY_URL_CONFIG, "https://psrc-j55zm.us-central1.gcp.confluent.cloud");
+        props.put("basic.auth.credentials.source", "USER_INFO");
 
         return props;
     }
@@ -49,10 +56,21 @@ public class TransformStream {
         Map<String, Object> serdeProps = new HashMap<>();
 
         final StreamsBuilder builder = new StreamsBuilder();
-        final String inputTopic = envProps.getProperty("input.topic.name");
+        final String inputTopic = "input";
+
+        // create store
+        StoreBuilder storeBuilder = Stores.keyValueStoreBuilder(
+
+                Stores.persistentKeyValueStore("Dave"),
+                Serdes.String(),
+                Serdes.Integer());
+// register store
+        builder.addStateStore(storeBuilder);
+        //ts.createTopics(envProps);
 
         KStream<String, String> rawMovies = builder.stream(inputTopic);
-        KStream<String, Output> movies = rawMovies.transform(()->new WAEventTransformer<>("Dave","Dave"),"Dave");
+        KStream<String, Output> movies = rawMovies.transform(
+                ()->new WAEventTransformer<>("Dave","Dave"),"Dave");
 
         final Serializer<Output> userProfileSerializer = new JsonPOJOSerializer<>();
         serdeProps.put("JsonPOJOClass", Output.class);
@@ -65,14 +83,9 @@ public class TransformStream {
         final Serde<Output> wPageViewByRegionSerde = Serdes.serdeFrom(userProfileSerializer, userProfileDeserializer);
 
 
-        movies.to("movies",Produced.with(Serdes.String(), wPageViewByRegionSerde));
+        movies.to("output",Produced.with(Serdes.String(), wPageViewByRegionSerde));
 
         return builder.build();
-    }
-
-    public static String convertRawMovie(String rawMovie) {
-
-        return "";
     }
 
     public Properties loadEnvProperties(String fileName) throws IOException {
@@ -85,16 +98,15 @@ public class TransformStream {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 1) {
+       /* if (args.length < 1) {
             throw new IllegalArgumentException("This program takes one argument: the path to an environment configuration file.");
-        }
+        }*/
 
         TransformStream ts = new TransformStream();
-        Properties envProps = ts.loadEnvProperties(args[0]);
-        Properties streamProps = ts.buildStreamsProperties(envProps);
-        Topology topology = ts.buildTopology(envProps);
+        //Properties envProps = ts.loadEnvProperties(args[0]);
+        Properties streamProps = ts.buildStreamsProperties();
+        Topology topology = ts.buildTopology(streamProps);
 
-        //ts.createTopics(envProps);
 
         final KafkaStreams streams = new KafkaStreams(topology, streamProps);
         final CountDownLatch latch = new CountDownLatch(1);

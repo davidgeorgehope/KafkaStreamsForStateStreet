@@ -1,2 +1,6 @@
-com/davidgeorgehope/mq2kafka/MQ2Kafka$1.class
-com/davidgeorgehope/mq2kafka/MQ2Kafka.class
+com/davidgeorgehope/mq2kafka/TransformStream.class
+com/davidgeorgehope/mq2kafka/WAEventTransformer.class
+com/davidgeorgehope/mq2kafka/TransformStream$1.class
+com/davidgeorgehope/mq2kafka/Output.class
+com/davidgeorgehope/mq2kafka/JsonPOJODeserializer.class
+com/davidgeorgehope/mq2kafka/JsonPOJOSerializer.class

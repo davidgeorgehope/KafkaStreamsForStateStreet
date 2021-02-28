@@ -32,11 +32,10 @@ public class WAEventTransformer<T> implements Transformer<String, String, KeyVal
 
 		Integer stored = store.get(key);
 
-
-		stored=++stored;
-
 		if (stored == null) {
 			stored = 0;
+		}else{
+			stored=++stored;
 		}
 
 		store.put(key, stored);

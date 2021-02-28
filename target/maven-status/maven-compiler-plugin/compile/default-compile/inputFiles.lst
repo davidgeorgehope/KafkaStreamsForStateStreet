@@ -1,1 +1,5 @@
-/Users/davidhope/MQ2Kafka/src/main/java/com/davidgeorgehope/mq2kafka/MQ2Kafka.java
+/Users/davidhope/KafkaStreamsForStateStreet/src/main/java/com/davidgeorgehope/mq2kafka/Output.java
+/Users/davidhope/KafkaStreamsForStateStreet/src/main/java/com/davidgeorgehope/mq2kafka/WAEventTransformer.java
+/Users/davidhope/KafkaStreamsForStateStreet/src/main/java/com/davidgeorgehope/mq2kafka/JsonPOJODeserializer.java
+/Users/davidhope/KafkaStreamsForStateStreet/src/main/java/com/davidgeorgehope/mq2kafka/TransformStream.java
+/Users/davidhope/KafkaStreamsForStateStreet/src/main/java/com/davidgeorgehope/mq2kafka/JsonPOJOSerializer.java
